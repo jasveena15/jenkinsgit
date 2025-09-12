@@ -1,0 +1,27 @@
+// Jenkinsfile_task1 — prints ONLY stage tasks & tools (theoretical pipeline)
+pipeline {
+  agent any
+  stages {
+    stage('Build') {
+      steps { echo 'Task: Compile & package | Tool: Maven or Gradle' }
+    }
+    stage('Unit & Integration Tests') {
+      steps { echo 'Task: Unit + Integration testing | Tools: JUnit + Postman(Newman) or Jest + SuperTest' }
+    }
+    stage('Code Analysis') {
+      steps { echo 'Task: Static code analysis | Tools: SonarQube/SonarCloud or ESLint' }
+    }
+    stage('Security Scan') {
+      steps { echo 'Task: Dependency/code vulnerability scan | Tools: npm audit or Snyk or Trivy' }
+    }
+    stage('Deploy to Staging') {
+      steps { echo 'Task: Deploy to staging (EC2/VM/Container) | Tools: SSH/Ansible/Docker/AWS CLI' }
+    }
+    stage('Integration Tests on Staging') {
+      steps { echo 'Task: End-to-end/integration tests on staging | Tools: Postman(Newman)/Cypress' }
+    }
+    stage('Deploy to Production') {
+      steps { echo 'Task: Deploy to production (blue-green/rolling) | Tools: Ansible/Docker/AWS CLI' }
+    }
+  }
+}
