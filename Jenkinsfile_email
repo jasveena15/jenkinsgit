@@ -1,0 +1,83 @@
+pipeline {
+  agent any
+  options { timestamps() }
+
+  environment {
+    NOTIFY = 'kaurjasveena15@gmail.com'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        echo 'Tool: Git'
+        git branch: 'main', url: 'https://github.com/jasveena15/jenkinsgit.git'
+      }
+    }
+
+    stage('Install Dependencies') {
+      steps {
+        echo 'Tool: npm'
+        sh 'npm install'
+      }
+    }
+
+    stage('Run Tests') {
+      steps {
+        echo 'Tool: Snyk via npm test'
+        script {
+          def code = sh(script: 'npm test', returnStatus: true)
+          env.TEST_STATUS = (code == 0 ? 'SUCCESS' : 'FAILURE')
+        }
+      }
+      post {
+        always {
+          emailext(
+            to: env.NOTIFY,
+            subject: "Run Tests (${env.TEST_STATUS}) — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: """
+              <p><b>Stage:</b> Run Tests — <b>${env.TEST_STATUS}</b></p>
+              <p><b>Job:</b> ${env.JOB_NAME} #${env.BUILD_NUMBER}</p>
+              <p><b>Console:</b> <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>
+            """,
+            mimeType: 'text/html',
+            attachBuildLog: true,
+            compressLog: true
+          )
+        }
+      }
+    }
+
+    stage('Coverage') {
+      steps {
+        echo 'Tool: nyc (optional)'
+        sh 'npm run coverage || true'
+      }
+    }
+
+    stage('NPM Audit') {
+      steps {
+        echo 'Tool: npm audit'
+        script {
+          def code = sh(script: 'npm audit', returnStatus: true)
+          env.AUDIT_STATUS = (code == 0 ? 'SUCCESS' : 'FAILURE')
+        }
+      }
+      post {
+        always {
+          emailext(
+            to: env.NOTIFY,
+            subject: "Security Scan (${env.AUDIT_STATUS}) — ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: """
+              <p><b>Stage:</b> NPM Audit — <b>${env.AUDIT_STATUS}</b></p>
+              <p><b>Job:</b> ${env.JOB_NAME} #${env.BUILD_NUMBER}</p>
+              <p><b>Console:</b> <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>
+            """,
+            mimeType: 'text/html',
+            attachBuildLog: true,
+            compressLog: true
+          )
+        }
+      }
+    }
+  }
+}
