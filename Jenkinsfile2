@@ -1,0 +1,32 @@
+pipeline {
+  agent any
+
+  stages {
+    stage('Checkout') {
+      steps {
+        git branch: 'main', url: 'https://github.com/jasveena15/jenkinsgit.git'
+      }
+    }
+
+    // Run once to confirm Node/npm are visible inside the container
+    stage('Node Check') {
+      steps { sh 'node -v && npm -v' }
+    }
+
+    stage('Install Dependencies') {
+      steps { sh 'npm install' }
+    }
+
+    stage('Run Tests') {
+      steps { sh 'npm test || true' }   // continue even if tests fail
+    }
+
+    stage('Coverage') {
+      steps { sh 'npm run coverage || true' }
+    }
+
+    stage('NPM Audit') {
+      steps { sh 'npm audit || true' }  // print vulnerabilities, don’t fail build
+    }
+  }
+}
